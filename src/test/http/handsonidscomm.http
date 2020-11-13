@@ -1,0 +1,117 @@
+# curl -X POST "https://s415vm1871:9080/admin/api/resources/resource" -H "accept: */*" -H "Content-Type: application/json" -d "{\"title\":\"Sample Resource\",\"description\":\"This is an example resource containing weather data.\",\"keywords\":[\"weather\",\"data\",\"sample\"],\"owner\":\"https://openweathermap.org/\",\"license\":\"http://opendatacommons.org/licenses/odbl/1.0/\",\"version\":\"1.0\"}"
+POST http://{{hostProvider}}/admin/api/resources/resource
+accept: */*
+Authorization: Basic {{username}} {{password}}
+Content-Type: application/json
+
+{
+  "title": "Sample Resource",
+  "description": "This is an example resource containing weather data.",
+  "keywords": [
+    "weather",
+    "data",
+    "sample"
+  ],
+  "owner": "https://openweathermap.org/",
+  "license": "http://opendatacommons.org/licenses/odbl/1.0/",
+  "version": "1.0"
+}
+
+> {%
+    var resourceId =  response.body.toString().substring(31)
+    client.global.set("resourceId", resourceId)
+    client.global.set("resourceUri", "https://w3id.org/idsa/autogen/resource/"+resourceId)
+    client.global.set("recipientUri", "http://"+  client.global.get("hostProvider") + "/api/ids/data")
+
+    client.log(resourceId)
+    client.log(client.global.get("resourceUri"))
+    client.log(client.global.get("recipientUri"))
+%}
+
+###
+
+# curl -X POST "https://s415vm1871:9080/admin/api/resources/0dda57c7-d9a5-4ea2-9573-1be69e4e77d0/representation" -H "accept: */*" -H "Content-Type: application/json" -d "{\"type\":\"json\",\"byteSize\":105,\"sourceType\":\"http-get\",\"source\":{\"url\":\"https://samples.openweathermap.org/data/2.5/weather?lat=35&lon=139&appid=439d4b804bc8187953eb36d2a8c26a02\",\"username\":\"-\",\"password\":\"-\",\"system\":\"Open Weather Map API\"}}"
+POST http://{{hostProvider}}/admin/api/resources/{{resourceId}}/representation
+accept: */*
+Content-Type: application/json
+
+{
+  "type": "json",
+  "byteSize": 105,
+  "sourceType": "http-get",
+  "source": {
+    "url": "https://samples.openweathermap.org/data/2.5/weather?lat=35&lon=139&appid=439d4b804bc8187953eb36d2a8c26a02",
+    "username": "-",
+    "password": "-",
+    "system": "Open Weather Map API"
+  }
+}
+
+> {%
+    var representationId =  response.body.toString().substring(49)
+    client.global.set("representationId", representationId)
+    client.global.set("representationUri", "https://w3id.org/idsa/autogen/resource/"+representationId)
+
+    client.log(representationId)
+%}
+
+###
+# curl -X PUT "https://s415vm1871:9080/admin/api/resources/0dda57c7-d9a5-4ea2-9573-1be69e4e77d0/contract" -H "accept: */*" -H "Content-Type: application/json" -d "{\"@context\":{\"ids\":\"https://w3id.org/idsa/core/\"},\"@type\":\"ids:ContractOffer\",\"@id\":\"https://w3id.org/idsa/autogen/contractOffer/0abdf773-3d1e-48fc-a1e9-b6dd9b61b300\",\"ids:permission\":[{\"@type\":\"ids:Permission\",\"@id\":\"https://w3id.org/idsa/autogen/permission/ae138d4f-f01d-4358-89a7-73e7c560f3de\",\"ids:description\":[{\"@value\":\"provide-access\",\"@type\":\"http://www.w3.org/2001/XMLSchema#string\"}],\"ids:action\":[{\"@id\":\"idsc:USE\"}],\"ids:title\":[{\"@value\":\"Example Usage Policy\",\"@type\":\"http://www.w3.org/2001/XMLSchema#string\"}]}]}"
+PUT http://{{hostProvider}}/admin/api/resources/{{resourceId}}/contract
+accept: */*
+Content-Type: application/json
+
+{
+  "@context": {
+    "ids": "https://w3id.org/idsa/core/"
+  },
+  "@type": "ids:ContractOffer",
+  "@id": "https://w3id.org/idsa/autogen/contractOffer/0abdf773-3d1e-48fc-a1e9-b6dd9b61b300",
+  "ids:permission": [
+    {
+      "@type": "ids:Permission",
+      "@id": "https://w3id.org/idsa/autogen/permission/ae138d4f-f01d-4358-89a7-73e7c560f3de",
+      "ids:description": [
+        {
+          "@value": "provide-access",
+          "@type": "http://www.w3.org/2001/XMLSchema#string"
+        }
+      ],
+      "ids:action": [
+        {
+          "@id": "idsc:USE"
+        }
+      ],
+      "ids:title": [
+        {
+          "@value": "Example Usage Policy",
+          "@type": "http://www.w3.org/2001/XMLSchema#string"
+        }
+      ]
+    }
+  ]
+}
+
+
+
+###
+# curl -X POST "http://s415vm1872:9080/admin/api/request/description?recipient=http%3A%2F%2Fs415vm1871%3A9080%2Fapi%2Fids%2Fdata&requestedArtifact=https%3A%2F%2Fw3id.org%2Fidsa%2Fautogen%2Fresource%2F8e7f130f-96f7-46d0-8536-15cb92e434e8" -H "accept: */*" -d ""
+POST http://{{hostProvider}}/admin/api/request/description?recipient={{recipientUri}}&requestedArtifact={{resourceUri}}
+accept: */*
+Content-Type: application/x-www-form-urlencoded
+
+###
+
+# curl -X POST "http://s415vm1872:9080/admin/api/request/artifact?recipient=http%3A%2F%2Fs415vm1871%3A9080%2Fapi%2Fids%2Fdata&requestedArtifact=https%3A%2F%2Fw3id.org%2Fidsa%2Fautogen%2Frepresentation%2F88b9a57a-c7bb-4010-b00f-bb66b6cb1bf9&key=2f412537-6bc3-404a-b90a-0b4df93adc6c" -H "accept: */*" -d ""
+POST http://s415vm1872:9080/admin/api/request/artifact?recipient={{recipientUri}}&requestedArtifact=https%3A%2F%2Fw3id.org%2Fidsa%2Fautogen%2Frepresentation%2F88b9a57a-c7bb-4010-b00f-bb66b6cb1bf9&key=2f412537-6bc3-404a-b90a-0b4df93adc6c
+accept: */*
+Content-Type: application/x-www-form-urlencoded
+
+###
+
+
+
+
+
+
+
